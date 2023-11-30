@@ -1,0 +1,91 @@
+﻿@using DSA.CreditCardProcess.Web.Models
+@using DSA.CreditCardProcess.Web.Services.Contracts;
+@inject ICardProcessService _cardProcessService
+
+
+<EditForm Model="@model" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+
+<div class="card">
+    <div class="card-header">
+            <span>Código en el siguiente enlace: <a href="https://github.com/gcontre/CreditCardProcess" target="_blank">GitHub</a></span>
+    </div>
+    <div class="card-body">
+            <div class="mb-3 col-12">
+                <label for="cardNumber" class="form-label">Por favor, ingresa un número de tarjeta de crédito.</label>
+                <InputText type="text" disabled="@IsDisabled" @bind-Value="model.CardNumber" class="form-control" id="cardNumber" aria-describedby="cardNumberHelp" placeholder="0000 0000 0000 0000" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))" maxlength="16" style="text-align: center;"></InputText>
+                <div id="cardNumberHelp" class="form-text">Número de tarjeta.</div>
+            </div>
+            <div class="mb-3 col-12">
+                <button type="submit" class="btn btn-outline-primary" disabled="@IsDisabled">Enviar</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => Limpiar()">Limpiar</button>
+                </div>
+    </div>
+</div>
+
+</EditForm>
+
+<div class="card">
+    <div class="card-header">Resultado:</div>
+    <div class="card-body">
+            <div class="row g-1">
+                <div class="col-12">
+                    <div class="p-3 border bg-light" style="max-height: 400px; overflow-y: auto;">
+                        @foreach(var msg in MsgProceso)
+                        {
+                            <p>@msg</p>
+                        }
+
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+@code {
+    private string CardNumber { get; set; } = "";
+    private List<string> MsgProceso { get; set; } = new List<string>();
+    private List<string> MsgBack { get; set; }
+    private CardInfoModel model = new();
+    protected bool IsDisabled { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        IsDisabled = true;
+        MsgProceso.Add($"El número de tarjeta es válido (Validación en front-end)");
+        MsgProceso.Add($"Tarjeta: {model.CardNumber}");
+        model.CardNumberNoMask = model.CardNumber;
+
+        string mask = new string('X', 12);
+        string unMaskEnd = model.CardNumber.Substring(12, 4);
+
+        model.CardNumber = mask + unMaskEnd;
+        MsgProceso.Add($"Mask: " + model.CardNumber + "(front-end)");
+        MsgProceso.Add($"++ Inicia proceso en servidor ++");
+        MsgProceso.AddRange(await _cardProcessService.ProcessCard(model.CardNumberNoMask));
+    }
+
+    private async Task Procesar()
+    {
+        for (int i = 0; i <= 10; i++)
+        {
+            MsgProceso.Add($"Linea {i}");
+        }
+    }
+
+    private async Task Limpiar()
+    {
+        IsDisabled = false;
+        MsgProceso = new List<string>();
+
+        model.CardNumber = "";
+        model.CardNumberNoMask = "";
+    }
+}
