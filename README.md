@@ -2,7 +2,8 @@
 ## Proceso número de tarjeta crédito
 ### Desarrollador
 >Gonzalo Contreras
-Puedes visitar la aplicación [aquí][urlp]
+### Aplicación
+>Puedes visitar la aplicación [aquí][urlp]
 ### Objetivo
 
 - Desarrolla una aplicación con el lenguaje de tu preferencia, donde le des la oportunidad al usuario de introducir cadenas de texto.
